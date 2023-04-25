@@ -1,10 +1,15 @@
-import { type NextPage } from "next";
+import { GetStaticPathsContext, GetStaticProps, type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { PageLayout } from "~/components/Layout";
 import { LoadingPage } from "~/components/LoadingSpinner";
 import { PostView } from "~/components/PostView";
 import { api } from "~/utils/api";
+import { createServerSideHelpers } from "@trpc/react-query/server";
+import { appRouter } from "~/server/api/root";
+import SuperJSON from "superjson";
+import { prisma } from "~/server/db";
+import { generateSSGHelper } from "~/server/helpers/ssgHelper";
 
 const ProfileFeed = (props: { userId: string }) => {
   const { data, isLoading } = api.posts.getPostsByUserId.useQuery({
@@ -21,11 +26,10 @@ const ProfileFeed = (props: { userId: string }) => {
   );
 };
 
-const ProfilePage: NextPage = () => {
+const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
   const { data, isLoading } = api.profile.getUserByUsername.useQuery({
-    username: "johnygoldenhand",
+    username,
   });
-  if (isLoading) return <LoadingPage />;
   if (!data) return <div>404</div>;
   return (
     <>
@@ -51,6 +55,28 @@ const ProfilePage: NextPage = () => {
       </PageLayout>
     </>
   );
+};
+
+export const getStaticProps: GetStaticProps = async (context) => {
+  const helpers = generateSSGHelper();
+  const slug = context.params?.slug as string;
+
+  if (typeof slug !== "string") throw new Error("no user");
+
+  const username = slug.replace("@", "");
+
+  await helpers.profile.getUserByUsername.prefetch({ username });
+
+  return {
+    props: {
+      trcpState: helpers.dehydrate(),
+      username,
+    },
+  };
+};
+
+export const getStaticPaths = () => {
+  return { paths: [], fallback: "blocking" };
 };
 
 export default ProfilePage;
