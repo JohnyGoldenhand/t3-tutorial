@@ -1,5 +1,6 @@
 import { GetStaticProps, type NextPage } from "next";
 import Head from "next/head";
+import Link from "next/link";
 import { PageLayout } from "~/components/Layout";
 import { LoadingPage } from "~/components/LoadingSpinner";
 import { PostView } from "~/components/PostView";
@@ -18,7 +19,12 @@ const SinglePostPage: NextPage<{ postId: string }> = ({ postId }) => {
         <title>{`${data.post.content} - @${data.author.username}`}</title>
       </Head>
       <PageLayout>
-        <PostView {...data} />
+        <div className="flex flex-col ">
+          <PostView {...data} />
+          <Link href="/" className=" p-4 text-center">
+            Home page
+          </Link>
+        </div>
       </PageLayout>
     </>
   );

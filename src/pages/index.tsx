@@ -1,5 +1,5 @@
 import { type NextPage } from "next";
-import { SignInButton, useUser } from "@clerk/nextjs";
+import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { api } from "~/utils/api";
 import Image from "next/image";
 import { LoadingPage, LoadingSpinner } from "~/components/LoadingSpinner";
@@ -61,6 +61,7 @@ const CreatePostWizard = () => {
           <LoadingSpinner size={30} />
         </div>
       )}
+      <SignOutButton />
     </div>
   );
 };
@@ -94,7 +95,7 @@ const Home: NextPage = () => {
         )}
         {isSignedIn && <CreatePostWizard />}
       </div>
-      <Feed />
+      {isSignedIn && <Feed />}
     </PageLayout>
   );
 };
