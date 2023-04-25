@@ -2,13 +2,30 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { PageLayout } from "~/components/Layout";
+import { LoadingPage } from "~/components/LoadingSpinner";
+import { PostView } from "~/components/PostView";
 import { api } from "~/utils/api";
+
+const ProfileFeed = (props: { userId: string }) => {
+  const { data, isLoading } = api.posts.getPostsByUserId.useQuery({
+    userId: props.userId,
+  });
+  if (isLoading) return <LoadingPage />;
+  if (!data || data.length === 0) return <div>User has not posted</div>;
+  return (
+    <div className="flex flex-col">
+      {data.map((fullPost) => (
+        <PostView {...fullPost} key={fullPost.post.id} />
+      ))}
+    </div>
+  );
+};
 
 const ProfilePage: NextPage = () => {
   const { data, isLoading } = api.profile.getUserByUsername.useQuery({
     username: "johnygoldenhand",
   });
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <LoadingPage />;
   if (!data) return <div>404</div>;
   return (
     <>
@@ -30,6 +47,7 @@ const ProfilePage: NextPage = () => {
           data.username ?? ""
         }`}</div>
         <div className="w-full border-b border-r-slate-400" />
+        <ProfileFeed userId={data.id} />
       </PageLayout>
     </>
   );
